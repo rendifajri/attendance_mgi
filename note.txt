@@ -1,0 +1,59 @@
+To do
+- DONE Department CRUD
+- DONE User CRUD, Login, Profile
+- Imp  Employee CRUD, Import
+-      Attendance Checkin, Checkout, Report, Export Admin
+
+php artisan make:middleware Role
+php artisan make:controller UserController
+php artisan make:controller DepartmentController
+php artisan make:model Department --migration
+php artisan make:controller EmployeeController
+php artisan make:model Employee --migration
+php artisan make:controller AttendanceController
+php artisan make:model Attendance --migration
+
+
+----- Tutorial Laravel 8 -----
+Auth
+- Tambah config auth
+  nama_folder_project/config/auth.php
+- Edit auth service
+  nama_folder_project\app\Providers\AuthServiceProvider.php
+- Edit route api
+  nama_folder_project/routes/api.php
+
+Pendahuluan
+- untuk instalasi, pada terminal ketik
+  composer create-project --prefer-dist laravel/laravel nama_folder_project
+- letak model(--migration -> sudah automatis migration)
+  nama_folder_project/app/Models
+  php artisan make:model Department --migration
+  php artisan make:model Department
+- letak controller
+  nama_folder_project/Http/Controllers
+  php artisan make:controller DepartmentController
+- letak view
+  nama_folder_project/resources/views
+- letak css & js
+  nama_folder_project/public
+
+Config
+- db
+  nama_folder_project/.env
+- route
+  nama_folder_project/routes/web.php
+
+Migration & Seeder
+- Migration
+  php artisan make:migration CreateDepartmentTable
+  php artisan migrate
+- Seeder(--class -> hanya class itu saja yang dijalankan)
+  php artisan make:seeder UserSeeder
+  php artisan db:seed --class=UserSeeder
+
+php artisan make:model User
+php artisan make:controller UserController
+
+php artisan make:migration CreateUserTable
+php artisan migrate
