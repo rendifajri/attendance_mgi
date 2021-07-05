@@ -1,7 +1,7 @@
 To do
 - DONE Department CRUD
 - DONE User CRUD, Login, Profile
-- Imp  Employee CRUD, Import
+- DONE  Employee CRUD, Import
 -      Attendance Checkin, Checkout, Report, Export Admin
 
 php artisan make:middleware Role

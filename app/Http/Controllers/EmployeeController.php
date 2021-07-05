@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader;
 use App\Models\Employee;
 use App\Models\User;
 
@@ -37,8 +39,7 @@ class EmployeeController extends Controller
     }
     public function create(Request $request)
     {
-       // try{
-        //insert user dulu
+        // try{
         $valid_arr = [
             "department_id" => "required|exists:App\Models\Department,id",
             "nik" => "required|unique:App\Models\Employee,nik",
@@ -120,10 +121,12 @@ class EmployeeController extends Controller
     public function delete($id)
     {
         $employee = Employee::find($id);
-        if($employee == null)
+        $user = User::find($employee->user_id);
+        if($employee == null || $user == null)
             throw new \ModelNotFoundException("Employee not found.");
         else {
-            $employee ->delete();
+            $employee->delete();
+            $user->delete();
             $res = [
                 "status" => "success",
                 "message" => "Delete Employee success",
@@ -132,5 +135,81 @@ class EmployeeController extends Controller
         }
 
         return response($res);
+    }
+    public function import(Request $request)
+    {
+        try {
+            \DB::beginTransaction();
+            set_time_limit(0);
+            $file = $request->file;
+            $file_type = IOFactory::identify($file);
+
+            if($file_type == 'Csv')
+                $reader = new Reader\Csv();
+            else if($file_type == 'Xlsx')
+                $reader = new Reader\Xlsx();
+            else if($file_type == 'Xls')
+                $reader = new Reader\Xls();
+            else
+                throw \ValidationException::withMessages(['file' => "File invalid."]);
+            
+            $spreadsheet = $reader->load($file);
+            $results = $spreadsheet->getActiveSheet()->toArray();
+            $headers = $results[0];
+            $rows = array_splice($results, 1);
+
+            //echo "<pre>";
+            //var_dump($rows);
+            //echo "</pre>";
+            $employee_arr = [];
+            foreach ($rows as $row) {
+                //$row[1] = nik
+                $request = [
+                    "department_id" => $row[3],
+                    "nik" => $row[1],
+                    "password" => $row[4],
+                    "name" => $row[2],
+                ];
+                $valid_arr = [
+                    "department_id" => "required|exists:App\Models\Department,id",
+                    "nik" => "required|unique:App\Models\Employee,nik",
+                    "password" => "required",
+                    "name" => "required"
+                ];
+                $valid = Validator::make($request, $valid_arr);
+                if ($valid->fails())
+                    throw new \ValidationException($valid);
+                $user_check = User::where("username", $request['nik'])->first();
+                if($user_check != null)
+                    throw \ValidationException::withMessages(['username' => "The username has already been taken."]);
+                else{
+                    $user = User::create([
+                        "username" => $request['nik'],
+                        "name" => $request['name'],
+                        "password" => \Hash::make($request['password']),
+                        "role" => "User",
+                        "api_token" => md5($request['nik'])
+                    ]);
+                    $employee = Employee::create([
+                        "user_id" => $user->id,
+                        "department_id" => $request['department_id'],
+                        "nik" => $request['nik'],
+                        "name" => $request['name']
+                    ]);
+                    array_push($employee_arr, $employee);
+                }
+            }
+            $res = [
+                "status" => "success",
+                "message" => "Import Employee success",
+                "response" => $employee_arr 
+            ];
+
+            \DB::commit();
+            return response($res);
+        } catch (\Throwable $e) {
+            \DB::rollback();
+            throw $e;
+        }
     }
 }

@@ -41,3 +41,6 @@ Route::get   ('/employee/{id}', [EmployeeController::class, 'detail'])->middlewa
 Route::post  ('/employee', [EmployeeController::class, 'create'])->middleware('role:Admin');
 Route::put   ('/employee/{id}', [EmployeeController::class, 'update'])->middleware('role:Admin');
 Route::delete('/employee/{id}', [EmployeeController::class, 'delete'])->middleware('role:Admin');
+Route::post  ('/employee/import', [EmployeeController::class, 'import'])->middleware('role:Admin');
+
+//attendance

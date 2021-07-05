@@ -76,7 +76,8 @@ class Handler extends ExceptionHandler
                 return response(['status' => 'not_found', 'message' => $e->getMessage(), 'response' => null], 404);
             }
             else if ($e instanceof \ValidationException) {
-                return response(['status' => 'validation_error', 'message' => $e->errors(), 'response' => null], 400);
+                //var_dump(($e->validator->getData()));
+                return response(['status' => 'validation_error', 'message' => $e->errors(), 'response' => $e->validator->getData()], 400);
             }
             /*else {
                 return response(['status' => 'undefined', 'message' => $e->getMessage(), 'response' => null], $e->getStatusCode());
