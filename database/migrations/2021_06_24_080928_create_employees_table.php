@@ -19,6 +19,7 @@ class CreateEmployeesTable extends Migration
             $table->bigInteger('department_id')->unsigned();
             $table->string('nik')->unique();
             $table->string('name');
+            $table->tinyInteger('shift');
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('user')->onUpdate('cascade');
             $table->foreign('department_id')->references('id')->on('department')->onUpdate('cascade');

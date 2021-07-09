@@ -1,7 +1,9 @@
 To do
-- DONE Department CRUD
 - DONE User CRUD, Login, Profile
-- DONE  Employee CRUD, Import
+- DONE Config update
+- DONE Work Hour CRUD
+- DONE Department CRUD
+- DONE Employee CRUD, Import
 -      Attendance Checkin, Checkout, Report, Export Admin
 
 php artisan make:middleware Role
@@ -15,13 +17,22 @@ php artisan make:model Attendance --migration
 
 
 ----- Tutorial Laravel 8 -----
-Auth
-- Tambah config auth
-  nama_folder_project/config/auth.php
-- Edit auth service
-  nama_folder_project\app\Providers\AuthServiceProvider.php
-- Edit route api
+Middleware Auth
+- Tambah middleware
+  nama_folder_project/app/Http/Middleware/Role.php
+- Edit HTTP Kernel
+  nama_folder_project/app/Http/Kernel.php
+  tambah di routeMiddleware
+- Edit Route API
   nama_folder_project/routes/api.php
+
+Handler API
+- Edit Handler, agar return error bisa berupa json
+  nama_folder_project/app/Exceptions/Handler.php
+
+Register Class Alias
+- Edit config app, untuk mempermudah pemanggilan class-class helper
+  nama_folder_project/config/app.php
 
 Pendahuluan
 - untuk instalasi, pada terminal ketik
@@ -37,6 +48,8 @@ Pendahuluan
   nama_folder_project/resources/views
 - letak css & js
   nama_folder_project/public
+- error aliases
+  composer require --dev barryvdh/laravel-ide-helper
 
 Config
 - db
@@ -57,3 +70,12 @@ php artisan make:controller UserController
 
 php artisan make:migration CreateUserTable
 php artisan migrate
+
+
+Auth(ga jadi)
+- Tambah config auth
+  nama_folder_project/config/auth.php
+- Edit auth service
+  nama_folder_project/app/Providers/AuthServiceProvider.php
+- Edit route api
+  nama_folder_project/routes/api.php

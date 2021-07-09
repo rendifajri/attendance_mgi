@@ -16,8 +16,11 @@ class CreateAttendancesTable extends Migration
         Schema::create('attendance', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('employee_id')->unsigned();
+            $table->tinyInteger('shift');
             $table->dateTime('checkin');
             $table->dateTime('checkout');
+            $table->decimal('lat', 11, 8);
+            $table->decimal('lon', 11, 8);
             $table->timestamps();
             $table->foreign('employee_id')->references('id')->on('employee')->onUpdate('cascade');
         });

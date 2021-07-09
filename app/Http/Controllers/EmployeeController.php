@@ -44,7 +44,8 @@ class EmployeeController extends Controller
             "department_id" => "required|exists:App\Models\Department,id",
             "nik" => "required|unique:App\Models\Employee,nik",
             "password" => "required",
-            "name" => "required"
+            "name" => "required",
+            "shift" => "required|integer|min:1|max:3"
         ];
         $valid = Validator::make($request->all(), $valid_arr);
         if ($valid->fails())
@@ -64,7 +65,8 @@ class EmployeeController extends Controller
                 "user_id" => $user->id,
                 "department_id" => $request->department_id,
                 "nik" => $request->nik,
-                "name" => $request->name
+                "name" => $request->name,
+                "shift" => $request->shift
             ]);
             $res = [
                 "status" => "success",
@@ -83,7 +85,8 @@ class EmployeeController extends Controller
         $valid_arr = [
             "department_id" => "required|exists:App\Models\Department,id",
             "nik" => "required|unique:App\Models\Employee,nik,{$id},id",
-            "name" => "required"
+            "name" => "required",
+            "shift" => "required|integer|min:1|max:3"
         ];
         $valid = Validator::make($request->all(), $valid_arr);
         if ($valid->fails())
@@ -108,7 +111,8 @@ class EmployeeController extends Controller
             $employee ->update([
                 "department_id" => $request->department_id,
                 "nik" => $request->nik,
-                "name" => $request->name
+                "name" => $request->name,
+                "shift" => $request->shift
             ]);
             $res = [
                 "status" => "success",

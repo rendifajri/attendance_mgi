@@ -122,10 +122,10 @@ class UserController extends Controller
             throw new \ValidationException($valid);
         //throw \ValidationException::withMessages(["degree" => "Please fill degree!"]);
 
-        $user_where = [
+        $where = [
             "username" => $request->username,
         ];
-        $user = User::where($user_where)->first();
+        $user = User::where($where)->first();
         if($user == null)
             throw new \ModelNotFoundException("Username not found.");
         else if(!\Hash::check($request->password, $user->password))
