@@ -39,88 +39,97 @@ class EmployeeController extends Controller
     }
     public function create(Request $request)
     {
-        // try{
-        $valid_arr = [
-            "department_id" => "required|exists:App\Models\Department,id",
-            "nik" => "required|unique:App\Models\Employee,nik",
-            "password" => "required",
-            "name" => "required",
-            "shift" => "required|integer|min:1|max:3"
-        ];
-        $valid = Validator::make($request->all(), $valid_arr);
-        if ($valid->fails())
-            throw new \ValidationException($valid);
-        $user_check = User::where("username", $request->nik)->first();
-        if($user_check != null)
-            throw \ValidationException::withMessages(['username' => "The username has already been taken."]);
-        else{
-            $user = User::create([
-                "username" => $request->nik,
-                "name" => $request->name,
-                "password" => \Hash::make($request->password),
-                "role" => "User",
-                "api_token" => md5($request->nik)
-            ]);
-            $employee = Employee::create([
-                "user_id" => $user->id,
-                "department_id" => $request->department_id,
-                "nik" => $request->nik,
-                "name" => $request->name,
-                "shift" => $request->shift
-            ]);
-            $res = [
-                "status" => "success",
-                "message" => "Create Employee success",
-                "response" => $employee 
+        try{
+            \DB::beginTransaction();
+            $valid_arr = [
+                "department_id" => "required|exists:App\Models\Department,id",
+                "nik" => "required|unique:App\Models\Employee,nik",
+                "password" => "required",
+                "name" => "required",
+                "shift" => "required|integer|min:1|max:3"
             ];
+            $valid = Validator::make($request->all(), $valid_arr);
+            if ($valid->fails())
+                throw new \ValidationException($valid);
+            $user_check = User::where("username", $request->nik)->first();
+            if($user_check != null)
+                throw \ValidationException::withMessages(['username' => "The username has already been taken."]);
+            else{
+                $user = User::create([
+                    "username" => $request->nik,
+                    "name" => $request->name,
+                    "password" => \Hash::make($request->password),
+                    "role" => "User",
+                    "api_token" => md5($request->nik)
+                ]);
+                $employee = Employee::create([
+                    "user_id" => $user->id,
+                    "department_id" => $request->department_id,
+                    "nik" => $request->nik,
+                    "name" => $request->name,
+                    "shift" => $request->shift
+                ]);
+                $res = [
+                    "status" => "success",
+                    "message" => "Create Employee success",
+                    "response" => $employee 
+                ];
+            }
+            \DB::commit();
             return response($res);
+        } catch (\Throwable $e) {
+            \DB::rollback();
+            throw $e;
         }
-        // } catch (\Throwable $e) {
-        //     //DB::rollback();
-        //     throw $e;
-        // }
     }
     public function update(Request $request, $id)
     {
-        $valid_arr = [
-            "department_id" => "required|exists:App\Models\Department,id",
-            "nik" => "required|unique:App\Models\Employee,nik,{$id},id",
-            "name" => "required",
-            "shift" => "required|integer|min:1|max:3"
-        ];
-        $valid = Validator::make($request->all(), $valid_arr);
-        if ($valid->fails())
-            throw new \ValidationException($valid);
-
-        $employee = Employee::find($id);
-        $user = User::find($employee->user_id);
-        $user_check = User::where("username", $request->nik)->first();
-        if($employee == null || $user == null)
-            throw new \ModelNotFoundException("Employee not found.");
-        else if($user_check != null && $user_check->id != $user->id)
-            throw \ValidationException::withMessages(['username' => "The username has already been taken."]);
-        else{
-            $data_user = [
-                "username" => $request->nik,
-                "name" => $request->name
+        try{
+            \DB::beginTransaction();
+            $valid_arr = [
+                "department_id" => "required|exists:App\Models\Department,id",
+                "nik" => "required|unique:App\Models\Employee,nik,{$id},id",
+                "name" => "required",
+                "shift" => "required|integer|min:1|max:3"
             ];
-            if($request->password != '')
-                $data_user["password"] = \Hash::make($request->password);
-            $user->update($data_user);
+            $valid = Validator::make($request->all(), $valid_arr);
+            if ($valid->fails())
+                throw new \ValidationException($valid);
 
-            $employee ->update([
-                "department_id" => $request->department_id,
-                "nik" => $request->nik,
-                "name" => $request->name,
-                "shift" => $request->shift
-            ]);
-            $res = [
-                "status" => "success",
-                "message" => "Update Employee success",
-                "response" => $employee 
-            ];
+            $employee = Employee::find($id);
+            $user = User::find($employee->user_id);
+            $user_check = User::where("username", $request->nik)->first();
+            if($employee == null || $user == null)
+                throw new \ModelNotFoundException("Employee not found.");
+            else if($user_check != null && $user_check->id != $user->id)
+                throw \ValidationException::withMessages(['username' => "The username has already been taken."]);
+            else{
+                $data_user = [
+                    "username" => $request->nik,
+                    "name" => $request->name
+                ];
+                if($request->password != '')
+                    $data_user["password"] = \Hash::make($request->password);
+                $user->update($data_user);
+
+                $employee ->update([
+                    "department_id" => $request->department_id,
+                    "nik" => $request->nik,
+                    "name" => $request->name,
+                    "shift" => $request->shift
+                ]);
+                $res = [
+                    "status" => "success",
+                    "message" => "Update Employee success",
+                    "response" => $employee 
+                ];
+            }
+            \DB::commit();
+            return response($res);
+        } catch (\Throwable $e) {
+            \DB::rollback();
+            throw $e;
         }
-        return response($res);
     }
     public function delete($id)
     {

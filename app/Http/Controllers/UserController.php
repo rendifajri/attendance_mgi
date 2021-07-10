@@ -36,7 +36,8 @@ class UserController extends Controller
     }
     public function create(Request $request)
     {
-       // try{
+        // try{
+        //     \DB::beginTransaction();
             $valid_arr = [
                 "username" => "required|alpha_dash|unique:App\Models\User,username",
                 "name" => "required",

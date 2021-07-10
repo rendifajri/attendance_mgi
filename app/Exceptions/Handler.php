@@ -39,33 +39,6 @@ class Handler extends ExceptionHandler
             //
         });
         $this->renderable(function (Throwable $e) {
-            /*$res = [];
-            $code = 500;
-            if ($e instanceof ValidationException) {
-                $res = [
-                    'status' => 'validation_error',
-                    'message' => $e->errors()
-                ];
-                $code = 400;
-            }
-            else if ($e instanceof \GeneralException) {
-                $res = [
-                    'status' => $e->getMessage(),
-                    'message' => $e->getData()
-                ];
-                $code = $e->getCode();
-            }
-            else if ($e instanceof AuthenticationException) {
-                $res = [
-                    'status' => 'error',
-                    'message' => $e->getMessage()
-                ];
-                $code = 401;
-            }
-            return($res, $code);*/
-            //var_dump($e instanceof NotFoundHttpException);
-            //var_dump(get_class($e));
-            //var_dump($e->getMessage());
             if ($e instanceof \AccessDeniedHttpException) {
                 return response(['status' => 'access_denied', 'message' => $e->getMessage(), 'response' => null], 403);
             }
@@ -76,7 +49,6 @@ class Handler extends ExceptionHandler
                 return response(['status' => 'not_found', 'message' => $e->getMessage(), 'response' => null], 404);
             }
             else if ($e instanceof \ValidationException) {
-                //var_dump(($e->validator->getData()));
                 return response(['status' => 'validation_error', 'message' => $e->errors(), 'response' => $e->validator->getData()], 400);
             }
             /*else {

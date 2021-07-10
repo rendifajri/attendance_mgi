@@ -3,10 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\WorkHourController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\AttendanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,11 +27,20 @@ use App\Http\Controllers\WorkHourController;
 Route::post  ('/login', [UserController::class, 'login']);
 Route::get   ('/profile', [UserController::class, 'profile'])->middleware('role');
 
-Route::get   ('/user', [UserController::class, 'index'])->middleware('role:Admin,User');
+Route::get   ('/user', [UserController::class, 'index'])->middleware('role:Admin');
 Route::get   ('/user/{id}', [UserController::class, 'detail'])->middleware('role:Admin');
 Route::post  ('/user', [UserController::class, 'create'])->middleware('role:Admin');
 Route::put   ('/user/{id}', [UserController::class, 'update'])->middleware('role:Admin');
 Route::delete('/user/{id}', [UserController::class, 'delete'])->middleware('role:Admin');
+
+Route::get   ('/config', [ConfigController::class, 'index'])->middleware('role:Admin');
+Route::put   ('/config', [ConfigController::class, 'update'])->middleware('role:Admin');
+
+Route::get   ('/work_hour', [WorkHourController::class, 'index'])->middleware('role:Admin,User');
+Route::get   ('/work_hour/{id}', [WorkHourController::class, 'detail'])->middleware('role:Admin');
+Route::post  ('/work_hour', [WorkHourController::class, 'create'])->middleware('role:Admin');
+Route::put   ('/work_hour/{id}', [WorkHourController::class, 'update'])->middleware('role:Admin');
+Route::delete('/work_hour/{id}', [WorkHourController::class, 'delete'])->middleware('role:Admin');
 
 Route::get   ('/department', [DepartmentController::class, 'index'])->middleware('role:Admin');
 Route::get   ('/department/{id}', [DepartmentController::class, 'detail'])->middleware('role:Admin');
@@ -45,14 +55,7 @@ Route::put   ('/employee/{id}', [EmployeeController::class, 'update'])->middlewa
 Route::delete('/employee/{id}', [EmployeeController::class, 'delete'])->middleware('role:Admin');
 Route::post  ('/employee/import', [EmployeeController::class, 'import'])->middleware('role:Admin');
 
-Route::get   ('/config', [ConfigController::class, 'index'])->middleware('role:Admin');
-Route::put   ('/config', [ConfigController::class, 'update'])->middleware('role:Admin');
-
-Route::get   ('/work_hour', [WorkHourController::class, 'index'])->middleware('role:Admin');
-Route::get   ('/work_hour/{id}', [WorkHourController::class, 'detail'])->middleware('role:Admin');
-Route::post  ('/work_hour', [WorkHourController::class, 'create'])->middleware('role:Admin');
-Route::put   ('/work_hour/{id}', [WorkHourController::class, 'update'])->middleware('role:Admin');
-Route::delete('/work_hour/{id}', [WorkHourController::class, 'delete'])->middleware('role:Admin');
-Route::post  ('/work_hour/import', [WorkHourController::class, 'import'])->middleware('role:Admin');
-
-//attendance
+Route::get   ('/attendance', [AttendanceController::class, 'index'])->middleware('role');
+Route::get   ('/attendance/{id}', [AttendanceController::class, 'detail'])->middleware('role');
+Route::post  ('/attendance', [AttendanceController::class, 'tap'])->middleware('role:User');
+Route::delete('/attendance/{id}', [AttendanceController::class, 'delete'])->middleware('role:Admin');

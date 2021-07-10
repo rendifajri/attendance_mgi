@@ -4,7 +4,10 @@ To do
 - DONE Work Hour CRUD
 - DONE Department CRUD
 - DONE Employee CRUD, Import
--      Attendance Checkin, Checkout, Report, Export Admin
+- DONE Attendance Checkin, Checkout
+-      Attendance 3rd Shift Checkout
+-      Attendance Report, Export Admin
+-      Delete constraint handle
 
 php artisan make:middleware Role
 php artisan make:controller UserController
@@ -15,25 +18,7 @@ php artisan make:model Employee --migration
 php artisan make:controller AttendanceController
 php artisan make:model Attendance --migration
 
-
 ----- Tutorial Laravel 8 -----
-Middleware Auth
-- Tambah middleware
-  nama_folder_project/app/Http/Middleware/Role.php
-- Edit HTTP Kernel
-  nama_folder_project/app/Http/Kernel.php
-  tambah di routeMiddleware
-- Edit Route API
-  nama_folder_project/routes/api.php
-
-Handler API
-- Edit Handler, agar return error bisa berupa json
-  nama_folder_project/app/Exceptions/Handler.php
-
-Register Class Alias
-- Edit config app, untuk mempermudah pemanggilan class-class helper
-  nama_folder_project/config/app.php
-
 Pendahuluan
 - untuk instalasi, pada terminal ketik
   composer create-project --prefer-dist laravel/laravel nama_folder_project
@@ -65,11 +50,28 @@ Migration & Seeder
   php artisan make:seeder UserSeeder
   php artisan db:seed --class=UserSeeder
 
-php artisan make:model User
-php artisan make:controller UserController
+Middleware Auth
+- Tambah middleware
+  nama_folder_project/app/Http/Middleware/Role.php
+- Edit HTTP Kernel
+  nama_folder_project/app/Http/Kernel.php
+  tambah di routeMiddleware
+- Edit Route API
+  nama_folder_project/routes/api.php
 
-php artisan make:migration CreateUserTable
-php artisan migrate
+Handler API
+- Edit Handler, agar return error bisa berupa json
+  nama_folder_project/app/Exceptions/Handler.php
+
+Register Class Alias
+- Edit config app, untuk mempermudah pemanggilan class-class helper
+  nama_folder_project/config/app.php
+
+Make Scheduler or Background process
+- Panggil function di Console Kernel
+  nama_folder_project/app/Console/Kernel.php
+  $schedule->call(UserController::class.'@schedule')->cron('* * * * *');
+
 
 
 Auth(ga jadi)
