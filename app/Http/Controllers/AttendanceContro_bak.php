@@ -119,10 +119,8 @@ class AttendanceController extends Controller
         if($attendance_check != null){
             if($attendance_check->checkout != null)
                 throw new \ModelNotFoundException("You're already checked out.");
-            else{
-                // $attendance_check->checkin
+            else
                 $do_next_checkin = false;
-            }
         }
         if($distance > $config->max_distance){
             throw \ValidationException::withMessages([

@@ -5,9 +5,14 @@ To do
 - DONE Department CRUD
 - DONE Employee CRUD, Import
 - DONE Attendance Checkin, Checkout
--      Attendance 3rd Shift Checkout
+-      Attendance Info, checkout warning
+-      Attendance 3rd Shift Checkout -> make force checkout
+-      Attendance No checkin, direct checkout
+-      Attendance Late, Overtime, need to know checkin/checkout period
 -      Attendance Report, Export Admin
 -      Delete constraint handle
+
+check time to determine 
 
 php artisan make:middleware Role
 php artisan make:controller UserController
@@ -81,3 +86,21 @@ Auth(ga jadi)
   nama_folder_project/app/Providers/AuthServiceProvider.php
 - Edit route api
   nama_folder_project/routes/api.php
+
+
+
+            $where = [
+                "day" => 1, // date("N", strtotime($attendance_check->checkin))
+                // "shift" => Auth()->user()->employee->shift,
+            ];
+            $work_hour_check = WorkHour::selectRaw("
+                *,
+                CONCAT('".date("Y-m-d")." ', start) AS start_date,
+                IF(start>end, CONCAT('".date("Y-m-d", strtotime("+1 day"))." ', end), CONCAT('".date("Y-m-d")." ', end)) AS end_date
+            ")->where($where)->havingRaw("
+                start_date <= '".date("Y-m-d H:i:s")."' AND
+                end_date >= '".date("Y-m-d H:i:s")."'
+            ")->first(); // IF(start>end, 'yes', 'no') AS comp
+            echo($work_hour_check->shift);
+            echo WorkHour::select('shift')->groupBy('shift')->first()->shift;
+            //harus berjarak paling tidak 1 shift dari checkin terakhir

@@ -15,6 +15,7 @@ class CreateConfigsTable extends Migration
     {
         Schema::create('config', function (Blueprint $table) {
             $table->id();
+            $table->integer('max_distance');
             $table->decimal('office_lat', 11, 8);
             $table->decimal('office_lon', 11, 8);
             $table->timestamps();

@@ -22,6 +22,7 @@ class ConfigController extends Controller
     public function update(Request $request)
     {
         $valid_arr = [
+            "max_distance" => "required|integer",
             "office_lat" => "required|between:-90,90",
             "office_lon" => "required|between:-180,180"
         ];
