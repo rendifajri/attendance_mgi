@@ -12,7 +12,9 @@ To do
 -      Attendance Report, Export Admin
 -      Delete constraint handle
 
-check time to determine 
+1. Jika waktu diantara start dan end, maka jam kerja
+2. Jika waktu lebih dari start dikurangi lama jam kerja, maka sebelum jam kerja. Dan sudah bisa checkin untuk lembur
+3. Jika selain itu atau waktu lebih dari end hingga kurang dari poin 2, maka setelah jam kerja. Dan jika belum checkin, maka checkout saja. Dan jika sudah checkout, keluar pesan "Anda sudah checkout".
 
 php artisan make:middleware Role
 php artisan make:controller UserController

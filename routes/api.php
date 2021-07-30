@@ -57,7 +57,7 @@ Route::post  ('/employee/import', [EmployeeController::class, 'import'])->middle
 
 Route::get   ('/attendance', [AttendanceController::class, 'index'])->middleware('role');
 Route::get   ('/attendance/user_info', [AttendanceController::class, 'userInfo'])->middleware('role');
-Route::get   ('/attendance/temp', [AttendanceController::class, 'temp'])->middleware('role');
+Route::get   ('/attendance/time_check', [AttendanceController::class, 'timeCheck'])->middleware('role');
 Route::get   ('/attendance/{id}', [AttendanceController::class, 'detail'])->middleware('role');
 Route::post  ('/attendance', [AttendanceController::class, 'tap'])->middleware('role:User');
 Route::delete('/attendance/{id}', [AttendanceController::class, 'delete'])->middleware('role:Admin');
