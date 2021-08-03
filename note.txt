@@ -5,9 +5,9 @@ To do
 - DONE Department CRUD
 - DONE Employee CRUD, Import
 - DONE Attendance Checkin, Checkout
--      Attendance Info, checkout warning
--      Attendance 3rd Shift Checkout -> make force checkout
--      Attendance No checkin, direct checkout
+- DONE Attendance Info, checkout warning
+- DONE Attendance 3rd Shift Checkout -> make force checkout
+- DONE Attendance No checkin, force checkout
 -      Attendance Late, Overtime, need to know checkin/checkout period
 -      Attendance Report, Export Admin
 -      Delete constraint handle

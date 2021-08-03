@@ -15,8 +15,8 @@ class CreateWorkHoursTable extends Migration
     {
         Schema::create('work_hour', function (Blueprint $table) {
             $table->id();
-            $table->tinyInteger('shift');
             $table->tinyInteger('day');
+            $table->tinyInteger('shift');
             $table->time('start');
             $table->time('end');
             $table->unique(['day', 'shift']);

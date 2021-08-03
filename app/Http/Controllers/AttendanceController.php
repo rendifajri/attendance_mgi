@@ -48,32 +48,53 @@ class AttendanceController extends Controller
             "employee_id" => Auth()->user()->employee->id,
             "shift" => Auth()->user()->employee->shift,
         ];
-        $attendance = Attendance::where($where)->where("checkin", ">", date("Y-m-d H:i:s", strtotime("-16 hours")))->orderBy("checkin", "desc")->first();
+        $diff_2 = $time_check["diff"] * 2;
+        $attendance_check = Attendance::where($where)->where("checkin", ">", date("Y-m-d H:i:s", strtotime("-{$diff_2} hours")))->orderBy("checkin", "desc")->first();
         $message = "";
-        if($attendance == null && $time_check["remark"] == "before_work_hour")
-            $message = "Anda belum checkin. Silahkan checkin.";
-        else if($attendance == null && $time_check["remark"] == "after_work_hour")
-            $message = "Hari ini anda tidak checkin. Silahkan checkout.";
-        else if($attendance == null && $time_check["remark"] == "work_hour")
-            $message = "Anda terlambat. Silahkan checkin.";
-        else if($attendance->checkout != null)
-            $message = "Anda sudah checkout.";
-        else if($attendance->checkout == null && $time_check["remark"] == "before_work_hour") 
-            $message = "Anda telah melewati waktu checkout. Silahkan checkin.";
-        else if($attendance->checkout == null && $time_check["remark"] == "after_work_hour") 
-            $message = "Anda belum checkout. Silahkan checkout.";
-        else if($attendance->checkout == null && $time_check["remark"] == "work_hour") 
-            $message = "Belum waktu checkout.";
+        $action = "";
+        if($attendance_check == null && $time_check["remark"] == "before_work_hour"){
+            $message = "You haven't check in.";
+            $action = "Check In";
+        }
+        else if($attendance_check == null && $time_check["remark"] == "after_work_hour"){
+            $message = "You didn't check in.";
+            $action = "Check Out";
+        }
+        else if($attendance_check == null && $time_check["remark"] == "work_hour"){
+            $message = "You're late";
+            $action = "Check In";
+        }
+        else if($attendance_check->checkout != null){
+            $message = "You already checked out";
+            $action = "";
+        }
+        else if($attendance_check->checkout == null && $time_check["remark"] == "before_work_hour" && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
+            $message = "You missed yesterday checkout time.";
+            $action = "Check In";
+        }
+        else if($attendance_check->checkout == null && $time_check["remark"] == "after_work_hour" && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
+            $message = "You haven't check out.";
+            $action = "Check Out";
+        }
+        else{// else if($attendance_check->checkout == null && $time_check["remark"] == "work_hour"){
+            $message = "It's still work hour.";
+            $action = "Check Out";
+        }
+        $diff_day = $time_check["work_hour"]["day"] - date("N");
+        //echo date("N");
+        $date_period = date("Y-m-d", strtotime("{$diff_day} days"));
         $res = [
             "status" => "success",
             "message" => $message,
             "response" => [
-                "attendance" => $attendance,
+                "action" => $action,
+                "date_period" => $date_period,
+                "attendance" => $attendance_check,
                 "time_check" => $time_check
             ]
         ];
 
-        return response($res);
+        return $res;
     }
     public function timeCheck()
     {
@@ -83,6 +104,8 @@ class AttendanceController extends Controller
             date("N", strtotime("1 day"))
         ];
         $work_hour = WorkHour::whereIn("day", $where_day)->where("shift", Auth()->user()->employee->shift)->get();
+        if($work_hour == null)
+            throw new \ModelNotFoundException("Work Hour is empty.");
         $first_work_hour = null;
         if(Auth()->user()->employee->shift != 1){
             $first_where = [
@@ -113,8 +136,7 @@ class AttendanceController extends Controller
             //echo $date_start." ".date("Y-m-d H:i:s")." && ".$date_end." ".date("Y-m-d H:i:s")."\n";
             if($date_start <= date("Y-m-d H:i:s") && $date_end >= date("Y-m-d H:i:s")){
                 $user_hour = [
-                    //"bef" => $bef,
-                    //"bef2" => $bef2,
+                    "diff" => $diff,
                     "remark" => "work_hour",
                     "work_hour" => $val
                 ];
@@ -122,8 +144,7 @@ class AttendanceController extends Controller
             }
             else if(date("Y-m-d H:i:s") >= $bef){
                 $user_hour = [
-                    //"bef" => $bef,
-                    //"bef2" => $bef2,
+                    "diff" => $diff,
                     "remark" => "before_work_hour",
                     "work_hour" => $val
                 ];
@@ -131,16 +152,15 @@ class AttendanceController extends Controller
             }
             else{//else if(date("Y-m-d H:i:s") >= $date_end){
                 $user_hour = [
-                    //"bef" => strtotime("now"),
-                    //"bef2" => strtotime($val->end),
+                    "diff" => $diff,
                     "remark" => "after_work_hour",
                     "work_hour" => $val
                 ];
             }
         }
         $res = [
-            "status" => $user_hour != null ? "success" : "not_found",
-            "message" => $user_hour != null ? "Success" : "Work Hour is empty",
+            "status" => "success",
+            "message" => "Success",
             "response" => $user_hour
         ];
         return $res;
@@ -156,58 +176,56 @@ class AttendanceController extends Controller
         $valid = Validator::make($request->all(), $valid_arr);
         if ($valid->fails())
             throw new \ValidationException($valid);
+        $user_info = $this->userInfo();
+        if($user_info["response"]["action"] == ""){
+            throw \ValidationException::withMessages([
+                "lat" => $user_info["message"],
+                "lon" => $user_info["message"]
+            ]);
+        }
         $config = Config::first();
         $distance = $this->vincentyGreatCircleDistance($config->office_lat, $config->office_lon, $request->lat, $request->lon);// / 1000;
         $distance_fmt = number_format($distance,0,",",".");
         Log::channel("daily")->info("DISTANCE RESULT ".str_pad($distance_fmt, 6, " ", STR_PAD_LEFT).", FROM $config->office_lat, $config->office_lon TO $request->lat, $request->lon");
-        $where = [
-            "employee_id" => Auth()->user()->employee->id,
-            "shift" => Auth()->user()->employee->shift,
-        ];
-        $attendance_check = Attendance::where($where)->orderBy("checkin", "desc")->first();
-        $do_next_checkin = true;
-        // if($attendance_check != null){
-        //     if($attendance_check->checkout != null)
-        //         throw new \ModelNotFoundException("You're already checked out.");
-        //     else{
-        //         // $attendance_check->checkin
-        //         $do_next_checkin = false;
-        //     }
-        // }
         if($distance > $config->max_distance){
             throw \ValidationException::withMessages([
                 "lat" => "Jarak kantor dan lokasi anda lebih dari 50 M, yaitu {$distance_fmt} M.",
                 "lon" => "Jarak kantor dan lokasi anda lebih dari 50 M, yaitu {$distance_fmt} M."
             ]);
         }
-        // if($do_next_checkin){//|| $force_checkin == 1){
-        //     $attendance = Attendance::create([
-        //         "employee_id" => Auth()->user()->employee->id,
-        //         "shift" => Auth()->user()->employee->shift,
-        //         "checkin" => date("Y-m-d H:i:s"),
-        //         "checkout" => null,
-        //         "lat" => $request->lat,
-        //         "lon" => $request->lon
-        //     ]);
-        //     $res = [
-        //         "status" => "success",
-        //         "message" => "Attendance check in success",
-        //         "response" => $attendance
-        //     ];
-        // }
-        // else{
-        //     $attendance_check->update([
-        //         "checkout" => date("Y-m-d H:i:s"),
-        //         "lat" => $request->lat,
-        //         "lon" => $request->lon
-        //     ]);
-        //     $res = [
-        //         "status" => "success",
-        //         "message" => "Attendance check out success",
-        //         "response" => $attendance_check
-        //     ];
-        // }
-        $res = $this->timeCheck();
+        if($user_info["response"]["action"] == "Check In"){
+            $attendance = Attendance::create([
+                "employee_id" => Auth()->user()->employee->id,
+                "shift" => Auth()->user()->employee->shift,
+                //"date" => $xxx,
+                "checkin" => date("Y-m-d H:i:s"),
+                "checkout" => null,
+                "lat" => $request->lat,
+                "lon" => $request->lon
+            ]);
+            $res = [
+                "status" => "success",
+                "message" => "Attendance check in success",
+                "response" => $attendance
+            ];
+        }
+        else{
+            $user_info["response"]["attendance"]->update([
+                "checkout" => date("Y-m-d H:i:s"),
+                "lat" => $request->lat,
+                "lon" => $request->lon
+            ]);
+            /*$attendance->update([
+                "checkout" => date("Y-m-d H:i:s"),
+                "lat" => $request->lat,
+                "lon" => $request->lon
+            ]);*/
+            $res = [
+                "status" => "success",
+                "message" => "Attendance check out success",
+                "response" => $user_info["response"]["attendance"]
+            ];
+        }
         return response($res);
     }
     public function delete($id)
