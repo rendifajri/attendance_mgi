@@ -59,6 +59,7 @@ class AttendanceController extends Controller
         else if($attendance_check == null && $time_check["remark"] == "after_work_hour"){
             $message = "You didn't check in.";
             $action = "Check Out";
+            //$time_check["date_period"] = date("Y-m-d", strtotime("{$time_check["date_period"]} -1 day"));
         }
         else if($attendance_check == null && $time_check["remark"] == "work_hour"){
             $message = "You're late";
@@ -80,15 +81,11 @@ class AttendanceController extends Controller
             $message = "It's still work hour.";
             $action = "Check Out";
         }
-        $diff_day = $time_check["work_hour"]["day"] - date("N");
-        //echo date("N");
-        $date_period = date("Y-m-d", strtotime("{$diff_day} days"));
         $res = [
             "status" => "success",
             "message" => $message,
             "response" => [
                 "action" => $action,
-                "date_period" => $date_period,
                 "attendance" => $attendance_check,
                 "time_check" => $time_check
             ]
@@ -101,9 +98,9 @@ class AttendanceController extends Controller
         $where_day = [
             date("N", strtotime("-1 day")),
             date("N"),
-            date("N", strtotime("1 day"))
+            //date("N", strtotime("1 day"))
         ];
-        $work_hour = WorkHour::whereIn("day", $where_day)->where("shift", Auth()->user()->employee->shift)->get();
+        $work_hour = WorkHour::whereIn("day", $where_day)->where("shift", Auth()->user()->employee->shift)->orderBy('day')->get();
         if($work_hour == null)
             throw new \ModelNotFoundException("Work Hour is empty.");
         $first_work_hour = null;
@@ -115,47 +112,48 @@ class AttendanceController extends Controller
         }
         $user_hour = null;
         foreach($work_hour as $val){
-            $date_start = date("Y-m-d {$val->start}");
-            $date_end = date("Y-m-d {$val->end}");
+            $diff_day   = $val->day - date("N");
+            $date_start = date("Y-m-d {$val->start}", strtotime("{$diff_day} days"));
+            $date_end   = date("Y-m-d {$val->end}", strtotime("{$diff_day} days"));
             if($date_start > $date_end)
                 $date_end = date("Y-m-d H:i:s", strtotime("{$date_end} 1 day"));
-            $str_add = "0 day";
-            if(strtotime("now") > strtotime($date_end))
-                $str_add = "1 day";
-            $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} {$str_add}"));
-            $date_end = date("Y-m-d H:i:s", strtotime("{$date_end} {$str_add}"));
+            $date_period = date("Y-m-d", strtotime("{$date_start}"));
+
+            if(Auth()->user()->employee->shift != 1){
+                $first_val = $first_work_hour->where("day", $val->day)->first();
+                if(strtotime($val->start) < strtotime($first_val->start)){
+                    $date_start = date("Y-m-d {$val->start}", strtotime("{$date_start} 1 day"));
+                    $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} 1 day"));
+                }
+            }
             $diff = (strtotime($date_end) - strtotime($date_start))/3600;
             $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
             //$bef2 = "{$date_start} -{$diff} hours";
-            if(Auth()->user()->employee->shift != 1){
-                $first_val = $first_work_hour->where("day", $val->day)->first();
-                $first_date_start = date("Y-m-d {$first_val->start}");
-                if($date_start < $first_date_start)
-                    $bef = date("Y-m-d H:i:s", strtotime("{$bef} 1 day"));
-            }
-            //echo $date_start." ".date("Y-m-d H:i:s")." && ".$date_end." ".date("Y-m-d H:i:s")."\n";
+            echo $date_start."|".$date_end."\n";
+            //echo $date_end."|".date("Y-m-d H:i:s")."\n";
+
+            $user_hour = [
+                "date_period" => $date_period,
+                "diff" => $diff,
+            ];
             if($date_start <= date("Y-m-d H:i:s") && $date_end >= date("Y-m-d H:i:s")){
-                $user_hour = [
-                    "diff" => $diff,
-                    "remark" => "work_hour",
-                    "work_hour" => $val
-                ];
+                $user_hour["remark"] = "work_hour";
+                $user_hour["work_hour"] = $val;
                 break;
             }
-            else if(date("Y-m-d H:i:s") >= $bef){
-                $user_hour = [
-                    "diff" => $diff,
-                    "remark" => "before_work_hour",
-                    "work_hour" => $val
-                ];
+            else if($bef <= date("Y-m-d H:i:s") && $date_end >= date("Y-m-d H:i:s")){
+                $user_hour["remark"] = "before_work_hour";
+                $user_hour["work_hour"] = $val;
                 break;
             }
+            // else if($date_end <= date("Y-m-d H:i:s") && date("Y-m-d", strtotime($date_end)) == date("Y-m-d")){
+            //     $user_hour["remark"] = "after_work_hour";
+            //     $user_hour["work_hour"] = $val;
+            //     break;
+            // }
             else{//else if(date("Y-m-d H:i:s") >= $date_end){
-                $user_hour = [
-                    "diff" => $diff,
-                    "remark" => "after_work_hour",
-                    "work_hour" => $val
-                ];
+                $user_hour["remark"] = "after_work_hour";
+                $user_hour["work_hour"] = $val;
             }
         }
         $res = [
