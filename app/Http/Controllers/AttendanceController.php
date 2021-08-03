@@ -47,9 +47,11 @@ class AttendanceController extends Controller
         $where = [
             "employee_id" => Auth()->user()->employee->id,
             "shift" => Auth()->user()->employee->shift,
+            "date" => $time_check["date_period"]
         ];
-        $diff_2 = $time_check["diff"] * 2;
-        $attendance_check = Attendance::where($where)->where("checkin", ">", date("Y-m-d H:i:s", strtotime("-{$diff_2} hours")))->orderBy("checkin", "desc")->first();
+        //$diff_2 = $time_check["diff"] * 2;
+        //$attendance_check = Attendance::where($where)->where("checkin", ">", date("Y-m-d H:i:s", strtotime("-{$diff_2} hours")))->orderBy("checkin", "desc")->first();
+        $attendance_check = Attendance::where($where)->orderBy("checkin", "desc")->first();
         $message = "";
         $action = "";
         if($attendance_check == null && $time_check["remark"] == "before_work_hour"){
@@ -69,11 +71,11 @@ class AttendanceController extends Controller
             $message = "You already checked out";
             $action = "";
         }
-        else if($attendance_check->checkout == null && $time_check["remark"] == "before_work_hour" && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
+        else if($attendance_check->checkout == null && $time_check["remark"] == "before_work_hour"){// && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
             $message = "You missed yesterday checkout time.";
             $action = "Check In";
         }
-        else if($attendance_check->checkout == null && $time_check["remark"] == "after_work_hour" && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
+        else if($attendance_check->checkout == null && $time_check["remark"] == "after_work_hour"){// && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
             $message = "You haven't check out.";
             $action = "Check Out";
         }
@@ -129,7 +131,7 @@ class AttendanceController extends Controller
             $diff = (strtotime($date_end) - strtotime($date_start))/3600;
             $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
             //$bef2 = "{$date_start} -{$diff} hours";
-            echo $date_start."|".$date_end."\n";
+            //echo $date_start."|".$date_end."\n";
             //echo $date_end."|".date("Y-m-d H:i:s")."\n";
 
             $user_hour = [
@@ -195,7 +197,7 @@ class AttendanceController extends Controller
             $attendance = Attendance::create([
                 "employee_id" => Auth()->user()->employee->id,
                 "shift" => Auth()->user()->employee->shift,
-                //"date" => $xxx,
+                "date" => $user_info["response"]["time_check"]["date_period"],
                 "checkin" => date("Y-m-d H:i:s"),
                 "checkout" => null,
                 "lat" => $request->lat,
