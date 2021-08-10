@@ -61,7 +61,6 @@ class AttendanceController extends Controller
         else if($attendance_check == null && $time_check["remark"] == "after_work_hour"){
             $message = "You didn't check in.";
             $action = "Check Out";
-            //$time_check["date_period"] = date("Y-m-d", strtotime("{$time_check["date_period"]} -1 day"));
         }
         else if($attendance_check == null && $time_check["remark"] == "work_hour"){
             $message = "You're late";
@@ -102,7 +101,7 @@ class AttendanceController extends Controller
             date("N"),
             //date("N", strtotime("1 day"))
         ];
-        $work_hour = WorkHour::whereIn("day", $where_day)->where("shift", Auth()->user()->employee->shift)->orderBy('day')->get();
+        $work_hour = WorkHour::whereIn("day", $where_day)->where("shift", Auth()->user()->employee->shift)->orderByRaw("field(day, ".implode(",", $where_day).")")->get();
         if($work_hour == null)
             throw new \ModelNotFoundException("Work Hour is empty.");
         $first_work_hour = null;
@@ -113,22 +112,33 @@ class AttendanceController extends Controller
             $first_work_hour = WorkHour::whereIn("day", $where_day)->where("shift", 1)->get();
         }
         $user_hour = null;
+        $i = -1;
         foreach($work_hour as $val){
-            $diff_day   = $val->day - date("N");
+            $diff_day = $i++;
+            // $diff_day   = $val->day - date("N");
             $date_start = date("Y-m-d {$val->start}", strtotime("{$diff_day} days"));
             $date_end   = date("Y-m-d {$val->end}", strtotime("{$diff_day} days"));
             if($date_start > $date_end)
                 $date_end = date("Y-m-d H:i:s", strtotime("{$date_end} 1 day"));
             $date_period = date("Y-m-d", strtotime("{$date_start}"));
 
-            if(Auth()->user()->employee->shift != 1){
+            $diff = (strtotime($date_end) - strtotime($date_start))/3600;
+            if(Auth()->user()->employee->shift != 1){//note: cek jika bukan shift 1, maka perlu dicek apakah start di shift tersebut, kurang dari start shift 1, maka date period masuknya di hari kemarinnya.
                 $first_val = $first_work_hour->where("day", $val->day)->first();
                 if(strtotime($val->start) < strtotime($first_val->start)){
-                    $date_start = date("Y-m-d {$val->start}", strtotime("{$date_start} 1 day"));
-                    $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} 1 day"));
+                    //note: diatas berlaku jika waktu sekarang adalah before untuk shift 3(shift yang kurang start nya kurang dari shift 1), jika before, maka start/end ditambah 1 hari(besoknya), date periodnya hari ini. Dan di
+                    $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} 1 day"));// -/+? tunggu pas mau checkin/before_work_hour
+                    $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} 1 day"));// -/+? tunggu pas mau checkin/before_work_hour
+                    $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
+                    $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
+                    if($bef > date("Y-m-d H:i:s") || $date_end < date("Y-m-d H:i:s")){
+                        //note: dalam if ini, dicek apakah waktu sekarang bukan before, maka barulah date periodnya dibuat hari kemarin
+                        $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} -1 day"));// -/+? tunggu pas mau checkin/before_work_hour
+                        $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} -1 day"));// -/+? tunggu pas mau checkin/before_work_hour
+                        $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
+                    }
                 }
             }
-            $diff = (strtotime($date_end) - strtotime($date_start))/3600;
             $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
             //$bef2 = "{$date_start} -{$diff} hours";
             //echo $date_start."|".$date_end."\n";
