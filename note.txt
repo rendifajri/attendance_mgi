@@ -8,13 +8,16 @@ To do
 - DONE Attendance Info, checkout warning
 - DONE Attendance 3rd Shift Checkout -> make force checkout
 - DONE Attendance No checkin, force checkout
--      Attendance Late, Overtime, need to know checkin/checkout period
+- CHEC Attendance Late, Overtime, need to know checkin/checkout period
 -      Attendance Report, Export Admin
+-      Change shift import
 -      Delete constraint handle
 
 1. Jika waktu diantara start dan end, maka jam kerja
 2. Jika waktu lebih dari start dikurangi lama jam kerja, maka sebelum jam kerja. Dan sudah bisa checkin untuk lembur
 3. Jika selain itu atau waktu lebih dari end hingga kurang dari poin 2, maka setelah jam kerja. Dan jika belum checkin, maka checkout saja. Dan jika sudah checkout, keluar pesan "Anda sudah checkout".
+
+C:\Users\qoin\AppData\Local\Android\Sdk\emulator\emulator.exe -avd Pixel_5_API_29
 
 php artisan make:middleware Role
 php artisan make:controller UserController
