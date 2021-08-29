@@ -81,6 +81,14 @@ Make Scheduler or Background process
 - Panggil function di Console Kernel
   nama_folder_project/app/Console/Kernel.php
   $schedule->call(UserController::class.'@schedule')->cron('* * * * *');
+  php artisan schedule:work
+
+Make Queue
+- Tambah queue
+  php artisan make:job ProcessData.php
+  php artisan queue:work
+- Ubah env
+  QUEUE_CONNECTION=database
 
 
 

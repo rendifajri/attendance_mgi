@@ -11,13 +11,27 @@ use App\Models\User;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $employee = Employee::orderBy("nik")->get();
+        $employee = Employee::orderBy("nik");
+        $page = $request->query('page');
+        $limit = $request->query('limit');
+        $employee_pg = 1;    
+        if($page != null && $limit != null){
+            $page--;
+            $employee->offset(($page * $limit));
+            $employee->limit($limit);
+            $employee_pg = ceil(Employee::count() / $limit);
+        }
+        $employee = $employee->get();
+        foreach ($employee as $val) {
+            $val->department = $val->department;
+        }
         $res = [
             "status" => "success",
             "message" => "Get Employee list success",
-            "response" => $employee 
+            "response" => $employee,
+            "response_total_page" => $employee_pg
         ];
 
         return response($res);
