@@ -40,16 +40,16 @@ class Handler extends ExceptionHandler
         });
         $this->renderable(function (Throwable $e) {
             if ($e instanceof \AccessDeniedHttpException) {
-                return response(['status' => 'access_denied', 'message' => $e->getMessage(), 'response' => null], 403);
+                return response()->json(['status' => 'access_denied', 'message' => $e->getMessage(), 'response' => null], 403, ['Content-Type' => 'application/json;charset=UTF-8', 'Charset' => 'utf-8'], JSON_UNESCAPED_UNICODE);
             }
             else if ($e instanceof \AuthenticationException) {
-                return response(['status' => 'unauthenticated', 'message' => $e->getMessage(), 'response' => null], 401);
+                return response()->json(['status' => 'unauthenticated', 'message' => $e->getMessage(), 'response' => null], 401, ['Content-Type' => 'application/json;charset=UTF-8', 'Charset' => 'utf-8'], JSON_UNESCAPED_UNICODE);
             }
             else if ($e instanceof NotFoundHttpException) {
-                return response(['status' => 'not_found', 'message' => $e->getMessage(), 'response' => null], 404);
+                return response()->json(['status' => 'not_found', 'message' => $e->getMessage(), 'response' => null], 404, ['Content-Type' => 'application/json;charset=UTF-8', 'Charset' => 'utf-8'], JSON_UNESCAPED_UNICODE);
             }
             else if ($e instanceof \ValidationException) {
-                return response(['status' => 'validation_error', 'message' => $e->errors(), 'response' => $e->validator->getData()], 400);
+                return response()->json(['status' => 'validation_error', 'message' => $e->errors(), 'response' => $e->validator->getData()], 400, ['Content-Type' => 'application/json;charset=UTF-8', 'Charset' => 'utf-8'], JSON_UNESCAPED_UNICODE);
             }
             /*else {
                 return response(['status' => 'undefined', 'message' => $e->getMessage(), 'response' => null], $e->getStatusCode());

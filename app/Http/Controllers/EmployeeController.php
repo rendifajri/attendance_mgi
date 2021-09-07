@@ -56,8 +56,8 @@ class EmployeeController extends Controller
         try{
             \DB::beginTransaction();
             $valid_arr = [
-                "department_id" => "required|exists:App\Models\Department,id",
                 "nik" => "required|unique:App\Models\Employee,nik",
+                "department" => "required",
                 "password" => "required",
                 "name" => "required",
                 "shift" => "required|integer|min:1|max:3"
@@ -78,8 +78,8 @@ class EmployeeController extends Controller
                 ]);
                 $employee = Employee::create([
                     "user_id" => $user->id,
-                    "department_id" => $request->department_id,
                     "nik" => $request->nik,
+                    "department" => $request->department,
                     "name" => $request->name,
                     "shift" => $request->shift
                 ]);
@@ -101,8 +101,8 @@ class EmployeeController extends Controller
         try{
             \DB::beginTransaction();
             $valid_arr = [
-                "department_id" => "required|exists:App\Models\Department,id",
                 "nik" => "required|unique:App\Models\Employee,nik,{$id},id",
+                "department" => "required",
                 "name" => "required",
                 "shift" => "required|integer|min:1|max:3"
             ];
@@ -127,8 +127,8 @@ class EmployeeController extends Controller
                 $user->update($data_user);
 
                 $employee ->update([
-                    "department_id" => $request->department_id,
                     "nik" => $request->nik,
+                    "department" => $request->department,
                     "name" => $request->name,
                     "shift" => $request->shift
                 ]);
@@ -192,16 +192,18 @@ class EmployeeController extends Controller
             foreach ($rows as $row) {
                 //$row[1] = nik
                 $request = [
-                    "department_id" => $row[3],
+                    "department" => $row[3],
                     "nik" => $row[1],
-                    "password" => $row[4],
+                    "password" => $row[5],
                     "name" => $row[2],
+                    "shift" => $row[4],
                 ];
                 $valid_arr = [
-                    "department_id" => "required|exists:App\Models\Department,id",
                     "nik" => "required|unique:App\Models\Employee,nik",
+                    "department" => "required",
                     "password" => "required",
-                    "name" => "required"
+                    "name" => "required",
+                    "shift" => "required|integer|min:1|max:3"
                 ];
                 $valid = Validator::make($request, $valid_arr);
                 if ($valid->fails())
@@ -219,9 +221,10 @@ class EmployeeController extends Controller
                     ]);
                     $employee = Employee::create([
                         "user_id" => $user->id,
-                        "department_id" => $request['department_id'],
                         "nik" => $request['nik'],
-                        "name" => $request['name']
+                        "department" => $request['department'],
+                        "name" => $request['name'],
+                        "shift" => $request['shift']
                     ]);
                     array_push($employee_arr, $employee);
                 }

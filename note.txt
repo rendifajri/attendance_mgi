@@ -13,9 +13,21 @@ To do
 -      Change shift import
 -      Delete constraint handle
 
+To do(mobile)
+- DONE Login
+- DONE User List
+- DONE User Add
+- DONE User Import
+-      Attendance
+
 1. Jika waktu diantara start dan end, maka jam kerja
 2. Jika waktu lebih dari start dikurangi lama jam kerja, maka sebelum jam kerja. Dan sudah bisa checkin untuk lembur
 3. Jika selain itu atau waktu lebih dari end hingga kurang dari poin 2, maka setelah jam kerja. Dan jika belum checkin, maka checkout saja. Dan jika sudah checkout, keluar pesan "Anda sudah checkout".
+
+SELECT REFERENCED_TABLE_NAME, TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE
+  REFERENCED_TABLE_SCHEMA = 'attendance_mgi' AND
+  (REFERENCED_TABLE_NAME = 'department' OR TABLE_NAME = 'department');
 
 C:\Users\qoin\AppData\Local\Android\Sdk\emulator\emulator.exe -avd Pixel_5_API_29
 
