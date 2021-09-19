@@ -13,6 +13,6 @@ class User extends Authenticatable
     protected $fillable = ['username', 'name', 'password', 'role', 'api_token'];
 
     public function employee(){
-        return $this->hasOne(employee::class);
+        return $this->hasOne(Employee::class);
     }
 }

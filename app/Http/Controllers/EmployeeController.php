@@ -13,17 +13,16 @@ class EmployeeController extends Controller
 {
     public function index(Request $request)
     {
-        $employee = Employee::orderBy("nik");
+        $query = Employee::query();
         $page = $request->query('page');
         $limit = $request->query('limit');
-        $employee_pg = 1;    
         if($page != null && $limit != null){
             $page--;
-            $employee->offset(($page * $limit));
-            $employee->limit($limit);
-            $employee_pg = ceil(Employee::count() / $limit);
+            $employee_pg = ceil($query->count() / $limit);
+            $query->offset(($page * $limit));
+            $query->limit($limit);
         }
-        $employee = $employee->get();
+        $employee = $query->orderBy("created_at", "desc")->get();
         foreach ($employee as $val) {
             $val->department = $val->department;
         }

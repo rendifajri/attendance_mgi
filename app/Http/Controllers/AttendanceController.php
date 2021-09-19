@@ -8,19 +8,37 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Attendance;
 use App\Models\Config;
 use App\Models\WorkHour;
+use App\Models\User;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 
 class AttendanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $attendance = Attendance::orderBy("employee_id")->orderBy("checkin", "desc")->get();
+        $query = Attendance::query();
+        $page = $request->query('page');
+        $limit = $request->query('limit');
+        if(Auth()->user()->role == "User"){
+            $query->where('employee_id', Auth()->user()->employee->id);
+        }
+        if($page != null && $limit != null){
+            $page--;
+            $attendance_pg = ceil($query->count() / $limit);
+            $query->offset(($page * $limit));
+            $query->limit($limit);
+        }
+        $attendance = $query->orderBy("employee_id")->orderBy("checkin", "desc")->get();
         foreach($attendance as $val){
             $val->employee = $val->employee;
         }
         $res = [
             "status" => "success",
             "message" => "Get Attendance list success",
-            "response" => $attendance
+            "response" => $attendance,
+            "response_total_page" => $attendance_pg
         ];
 
         return response($res);
@@ -70,7 +88,7 @@ class AttendanceController extends Controller
             $message = "You already checked out";
             $action = "";
         }
-        else if($attendance_check->checkout == null && $time_check["remark"] == "before_work_hour"){// && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
+        else if($time_check["date_period"] != $attendance_check->date && $attendance_check->checkout == null && $time_check["remark"] == "before_work_hour"){// && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
             $message = "You missed yesterday checkout time.";
             $action = "Check In";
         }
@@ -125,16 +143,17 @@ class AttendanceController extends Controller
             $diff = (strtotime($date_end) - strtotime($date_start))/3600;
             if(Auth()->user()->employee->shift != 1){//note: cek jika bukan shift 1, maka perlu dicek apakah start di shift tersebut, kurang dari start shift 1, maka date period masuknya di hari kemarinnya.
                 $first_val = $first_work_hour->where("day", $val->day)->first();
+                $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
                 if(strtotime($val->start) < strtotime($first_val->start)){
-                    //note: diatas berlaku jika waktu sekarang adalah before untuk shift 3(shift yang kurang start nya kurang dari shift 1), jika before, maka start/end ditambah 1 hari(besoknya), date periodnya hari ini. Dan di
-                    $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} 1 day"));// -/+? tunggu pas mau checkin/before_work_hour
-                    $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} 1 day"));// -/+? tunggu pas mau checkin/before_work_hour
+                    //note: diatas berlaku jika waktu sekarang adalah before untuk shift 3(shift yang kurang start nya kurang dari shift 1), jika before, maka start/end ditambah 1 hari(besoknya), date periodnya hari ini
+                    $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} 1 day"));
+                    $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} 1 day"));
                     $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
                     $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
                     if($bef > date("Y-m-d H:i:s") || $date_end < date("Y-m-d H:i:s")){
                         //note: dalam if ini, dicek apakah waktu sekarang bukan before, maka barulah date periodnya dibuat hari kemarin
-                        $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} -1 day"));// -/+? tunggu pas mau checkin/before_work_hour
-                        $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} -1 day"));// -/+? tunggu pas mau checkin/before_work_hour
+                        $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} -1 day"));
+                        $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} -1 day"));
                         $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
                     }
                 }
@@ -190,17 +209,15 @@ class AttendanceController extends Controller
         if($user_info["response"]["action"] == ""){
             throw \ValidationException::withMessages([
                 "lat" => $user_info["message"],
-                "lon" => $user_info["message"]
             ]);
         }
         $config = Config::first();
         $distance = $this->vincentyGreatCircleDistance($config->office_lat, $config->office_lon, $request->lat, $request->lon);// / 1000;
-        $distance_fmt = number_format($distance,0,",",".");
+        $distance_fmt = number_format($distance, 0, ",", ".");
         Log::channel("daily")->info("DISTANCE RESULT ".str_pad($distance_fmt, 6, " ", STR_PAD_LEFT).", FROM $config->office_lat, $config->office_lon TO $request->lat, $request->lon");
         if($distance > $config->max_distance){
             throw \ValidationException::withMessages([
                 "lat" => "Jarak kantor dan lokasi anda lebih dari 50 M, yaitu {$distance_fmt} M.",
-                "lon" => "Jarak kantor dan lokasi anda lebih dari 50 M, yaitu {$distance_fmt} M."
             ]);
         }
         if($user_info["response"]["action"] == "Check In"){
@@ -220,21 +237,39 @@ class AttendanceController extends Controller
             ];
         }
         else{
-            $user_info["response"]["attendance"]->update([
-                "checkout" => date("Y-m-d H:i:s"),
-                "lat" => $request->lat,
-                "lon" => $request->lon
-            ]);
             /*$attendance->update([
                 "checkout" => date("Y-m-d H:i:s"),
                 "lat" => $request->lat,
                 "lon" => $request->lon
             ]);*/
+            if($user_info["response"]["attendance"] != null){
+                $user_info["response"]["attendance"]->update([
+                    "checkout" => date("Y-m-d H:i:s"),
+                    "lat" => $request->lat,
+                    "lon" => $request->lon
+                ]);
+                $res = [
+                    "status" => "success",
+                    "message" => "Attendance check out success",
+                    "response" => $user_info["response"]["attendance"]
+                ];
+            }
+            else{
+            $attendance = Attendance::create([
+                "employee_id" => Auth()->user()->employee->id,
+                "shift" => Auth()->user()->employee->shift,
+                "date" => $user_info["response"]["time_check"]["date_period"],
+                "checkin" => null,
+                "checkout" => date("Y-m-d H:i:s"),
+                "lat" => $request->lat,
+                "lon" => $request->lon
+            ]);
             $res = [
                 "status" => "success",
                 "message" => "Attendance check out success",
-                "response" => $user_info["response"]["attendance"]
+                "response" => $attendance
             ];
+            }
         }
         return response($res);
     }
@@ -253,6 +288,130 @@ class AttendanceController extends Controller
         }
 
         return response($res);
+    }
+    public function export(Request $request)
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue("A1", "NIK");
+        $sheet->setCellValue("B1", "Nama");
+        $sheet->setCellValue("C1", "Checkin");
+        $sheet->setCellValue("D1", "Checkout");
+        $sheet->setCellValue("E1", "WH Start");
+        $sheet->setCellValue("F1", "WH End");
+        $sheet->setCellValue("G1", "Jam Kerja");
+        $sheet->setCellValue("H1", "Kur Sebelum");
+        $sheet->setCellValue("I1", "Leb Sebelum");
+        $sheet->setCellValue("J1", "Kur Setelah");
+        $sheet->setCellValue("K1", "Leb Setelah");
+        $first_work_hour = WorkHour::where("shift", 1)->get();
+        $user = User::where("api_token", $request->query("token"))->first();
+        if($user != null){
+            $query = Attendance::query();
+            if($user->role == "User"){
+                $query->where("employee_id", $user->employee->id);
+            }
+            $cell = 1;
+            $query->leftJoin("work_hour", function($join){
+                $join->on("work_hour.shift", "=", "attendance.shift")->on("work_hour.day", "=", \DB::Raw("
+                    (
+                        CASE WHEN (DAYOFWEEK(attendance.date)-1 = 0)
+                            THEN 7
+                            ELSE DAYOFWEEK(attendance.date)-1 
+                        END
+                    )
+                "));
+            });//->select("start", "end") ;
+            $attendance = $query->orderBy("employee_id")->orderBy("date", "desc")->get();
+            foreach($attendance as $val){
+                $cell++;
+                $wh_start = $val->date." ".$val->start;
+                $wh_end = $val->date." ".$val->end;
+                if($wh_start > $wh_end){
+                    echo "abc\n";
+                    $wh_end = date("Y-m-d H:i:s", strtotime("{$wh_end} 1 day"));
+                }
+                $first_val = $first_work_hour->where("day", $val->day)->first();
+                if(strtotime($val->start) < strtotime($first_val->start)){
+                    $wh_start = date("Y-m-d H:i:s", strtotime("{$wh_start} 1 day"));
+                    $wh_end = date("Y-m-d H:i:s", strtotime("{$wh_end} 1 day"));
+                }
+                $wh_diff = (strtotime($wh_end) - strtotime($wh_start))/3600;
+                if($val->checkin == null || $val->checkout == null){
+                    $jam     = 0;
+                    $kur_seb = 0;
+                    $leb_seb = 0;
+                    $kur_set = $wh_diff;
+                    $leb_set = 0;
+                }
+                if($val->checkin < $wh_start){
+                    $kur_seb = 0;
+                    $leb_seb = (strtotime($wh_start) - strtotime($val->checkin))/3600;
+                }
+                else{
+                    $kur_seb = (strtotime($val->checkin) - strtotime($wh_start))/3600;
+                    $leb_seb = 0;
+                }
+
+                if($val->checkout > $wh_end){
+                    $kur_set = 0;
+                    $leb_set = (strtotime($val->checkout) - strtotime($wh_end))/3600;
+                }
+                else{
+                    $kur_set = (strtotime($wh_end) - strtotime($val->checkout))/3600;
+                    $leb_set = 0;
+                }
+
+                if($val->checkin < $wh_start && $val->checkout > $wh_end){
+                    $jam = $wh_diff;
+                }
+                else if($val->checkin > $wh_start && $val->checkout > $wh_end){
+                    $jam = (strtotime($wh_end) - strtotime($val->checkin))/3600;
+                }
+                else if($val->checkin < $wh_start && $val->checkout < $wh_end){
+                    $jam = (strtotime($val->checkout) - strtotime($wh_start))/3600;
+                }
+                else{
+                    $jam = (strtotime($val->checkout) - strtotime($val->checkin))/3600;
+                }
+                // if($val->checkin > $wh_start && $val->checkout > $wh_end){
+                //     $jam     = (strtotime($val->checkout) - strtotime($val->checkin))/3600;
+                //     $kur_seb = 0;
+                //     $leb_seb = (strtotime($wh_start) - strtotime($val->checkin))/3600;
+                //     $kur_set = 0;
+                //     $leb_set = (strtotime($val->checkout) - strtotime($wh_end))/3600;
+                // }
+                $jam     = number_format($jam, 2, ",", ".");
+                $kur_seb = number_format($kur_seb, 2, ",", ".");
+                $leb_seb = number_format($leb_seb, 2, ",", ".");
+                $kur_set = number_format($kur_set, 2, ",", ".");
+                $leb_set = number_format($leb_set, 2, ",", ".");
+                //echo $val->checkin." ".$val->checkout." ".$jam." ".$kur_seb." ".$leb_seb." ".$kur_set." ".$leb_set."\n";
+                $sheet->setCellValue("A".$cell, $val->employee->nik);
+                $sheet->setCellValue("B".$cell, $val->employee->name);
+                $sheet->setCellValue("C".$cell, $val->checkin);
+                $sheet->setCellValue("D".$cell, $val->checkout);
+                $sheet->setCellValue("E".$cell, $wh_start);
+                $sheet->setCellValue("F".$cell, $wh_end);
+                $sheet->setCellValue("G".$cell, $jam);
+                $sheet->setCellValue("H".$cell, $kur_seb);
+                $sheet->setCellValue("I".$cell, $leb_seb);
+                $sheet->setCellValue("J".$cell, $kur_set);
+                $sheet->setCellValue("K".$cell, $leb_set);
+            }
+        }
+        foreach (range("A","K") as $col) {
+            if($col == "E" || $col == "F")
+                $sheet->getColumnDimension($col)->setWidth(0);
+            else
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        $sheet->getStyle("A1:K".$cell)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        $writer = new Xlsx($spreadsheet);
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="attendance-export-'.date('Y-m-d').'.xlsx"');
+        $writer->save('php://output');
     }
     private function vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
     {

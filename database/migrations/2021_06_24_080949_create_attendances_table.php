@@ -18,7 +18,7 @@ class CreateAttendancesTable extends Migration
             $table->bigInteger('employee_id')->unsigned();
             $table->date('date');
             $table->tinyInteger('shift');
-            $table->dateTime('checkin');
+            $table->dateTime('checkin')->nullable();
             $table->dateTime('checkout')->nullable();
             $table->decimal('lat', 11, 8);
             $table->decimal('lon', 11, 8);
