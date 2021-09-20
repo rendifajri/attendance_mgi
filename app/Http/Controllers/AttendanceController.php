@@ -217,7 +217,7 @@ class AttendanceController extends Controller
         Log::channel("daily")->info("DISTANCE RESULT ".str_pad($distance_fmt, 6, " ", STR_PAD_LEFT).", FROM $config->office_lat, $config->office_lon TO $request->lat, $request->lon");
         if($distance > $config->max_distance){
             throw \ValidationException::withMessages([
-                "lat" => "Jarak kantor dan lokasi anda lebih dari 50 M, yaitu {$distance_fmt} M.",
+                "lat" => "Jarak kantor dan lokasi anda lebih dari {$config->max_distance} M, yaitu {$distance_fmt} M.",
             ]);
         }
         if($user_info["response"]["action"] == "Check In"){
