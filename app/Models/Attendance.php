@@ -10,6 +10,6 @@ class Attendance extends Model
     protected $fillable = ['employee_id', 'date', 'shift', 'checkin', 'checkout', 'lat', 'lon'];
     
     public function employee(){
-        return $this->belongsTo(employee::class);
+        return $this->belongsTo(Employee::class);
     }
 }
