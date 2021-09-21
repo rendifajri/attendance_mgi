@@ -143,19 +143,19 @@ class AttendanceController extends Controller
             $diff = (strtotime($date_end) - strtotime($date_start))/3600;
             if(Auth()->user()->employee->shift != 1){//note: cek jika bukan shift 1, maka perlu dicek apakah start di shift tersebut, kurang dari start shift 1, maka date period masuknya di hari kemarinnya.
                 $first_val = $first_work_hour->where("day", $val->day)->first();
-                $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
+                //$date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
                 if(strtotime($val->start) < strtotime($first_val->start)){
                     //note: diatas berlaku jika waktu sekarang adalah before untuk shift 3(shift yang kurang start nya kurang dari shift 1), jika before, maka start/end ditambah 1 hari(besoknya), date periodnya hari ini
                     $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} 1 day"));
                     $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} 1 day"));
                     $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
-                    $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
-                    if($bef > date("Y-m-d H:i:s") || $date_end < date("Y-m-d H:i:s")){
-                        //note: dalam if ini, dicek apakah waktu sekarang bukan before, maka barulah date periodnya dibuat hari kemarin
-                        $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} -1 day"));
-                        $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} -1 day"));
-                        $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
-                    }
+                }
+                $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
+                if($bef > date("Y-m-d H:i:s") || $date_end < date("Y-m-d H:i:s")){
+                    //note: dalam if ini, dicek apakah waktu sekarang bukan before, maka barulah date periodnya dibuat hari kemarin
+                    $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} -1 day"));
+                    $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} -1 day"));
+                    $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
                 }
             }
             $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
