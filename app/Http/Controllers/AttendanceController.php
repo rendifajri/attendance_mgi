@@ -151,12 +151,13 @@ class AttendanceController extends Controller
                     $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
                 }
                 $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
-                if($bef > date("Y-m-d H:i:s") || $date_end < date("Y-m-d H:i:s")){
-                    //note: dalam if ini, dicek apakah waktu sekarang bukan before, maka barulah date periodnya dibuat hari kemarin
-                    $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} -1 day"));
-                    $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} -1 day"));
-                    $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
-                }
+                // commented 25 Sept 2021
+                // if($bef > date("Y-m-d H:i:s") || $date_end < date("Y-m-d H:i:s")){
+                //     //note: dalam if ini, dicek apakah waktu sekarang bukan before, maka barulah date periodnya dibuat hari kemarin
+                //     $date_start = date("Y-m-d H:i:s", strtotime("{$date_start} -1 day"));
+                //     $date_end   = date("Y-m-d H:i:s", strtotime("{$date_end} -1 day"));
+                //     $date_period = date("Y-m-d", strtotime("{$date_start} -1 day"));//tunggu pas mau checkin/before_work_hour
+                // }
             }
             $bef = date("Y-m-d H:i:s", strtotime("{$date_start} -{$diff} hours"));
             //$bef2 = "{$date_start} -{$diff} hours";
