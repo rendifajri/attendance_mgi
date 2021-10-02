@@ -18,7 +18,9 @@ To do(mobile)
 - DONE User List
 - DONE User Add
 - DONE User Import
--      Attendance
+-      Attendance -> walaupun blm check in tampilin aja table nya, kosong
+-      User Edit
+-      User Delete
 
 1. Jika waktu diantara start dan end, maka jam kerja
 2. Jika waktu lebih dari start dikurangi lama jam kerja, maka sebelum jam kerja. Dan sudah bisa checkin untuk lembur

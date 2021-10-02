@@ -73,31 +73,32 @@ class AttendanceController extends Controller
         $message = "";
         $action = "";
         if($attendance_check == null && $time_check["remark"] == "before_work_hour"){
-            $message = "You haven't check in.";
+            $message = "Anda belum check in.";
             $action = "Check In";
         }
         else if($attendance_check == null && $time_check["remark"] == "after_work_hour"){
-            $message = "You didn't check in.";
+            $message = "Anda tidak check in hari ini.";
             $action = "Check Out";
         }
         else if($attendance_check == null && $time_check["remark"] == "work_hour"){
-            $message = "You're late";
+            $message = "Anda terlambat.";
             $action = "Check In";
         }
         else if($attendance_check->checkout != null){
-            $message = "You already checked out";
+            $message = "Anda sudah check out.";
             $action = "";
         }
         else if($time_check["date_period"] != $attendance_check->date && $attendance_check->checkout == null && $time_check["remark"] == "before_work_hour"){// && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
-            $message = "You missed yesterday checkout time.";
+            //$message = "You missed yesterday checkout time.";
+            $message = "Anda belum check in.";
             $action = "Check In";
         }
         else if($attendance_check->checkout == null && $time_check["remark"] == "after_work_hour"){// && $attendance_check->checkin < date("Y-m-d H:i:s", strtotime("-{$diff_2} hours"))){
-            $message = "You haven't check out.";
+            $message = "Anda belum check out.";
             $action = "Check Out";
         }
         else{// else if($attendance_check->checkout == null && $time_check["remark"] == "work_hour"){
-            $message = "It's still work hour.";
+            $message = "Sekarang masih jam kerja.";
             $action = "Check Out";
         }
         $res = [
@@ -328,7 +329,7 @@ class AttendanceController extends Controller
                 $wh_start = $val->date." ".$val->start;
                 $wh_end = $val->date." ".$val->end;
                 if($wh_start > $wh_end){
-                    echo "abc\n";
+                    //echo "abc\n";
                     $wh_end = date("Y-m-d H:i:s", strtotime("{$wh_end} 1 day"));
                 }
                 $first_val = $first_work_hour->where("day", $val->day)->first();
