@@ -342,51 +342,53 @@ class AttendanceController extends Controller
                     $jam     = 0;
                     $kur_seb = 0;
                     $leb_seb = 0;
-                    $kur_set = $wh_diff;
-                    $leb_set = 0;
-                }
-                if($val->checkin < $wh_start){
-                    $kur_seb = 0;
-                    $leb_seb = (strtotime($wh_start) - strtotime($val->checkin))/3600;
-                }
-                else{
-                    $kur_seb = (strtotime($val->checkin) - strtotime($wh_start))/3600;
-                    $leb_seb = 0;
-                }
-
-                if($val->checkout > $wh_end){
                     $kur_set = 0;
-                    $leb_set = (strtotime($val->checkout) - strtotime($wh_end))/3600;
-                }
-                else{
-                    $kur_set = (strtotime($wh_end) - strtotime($val->checkout))/3600;
                     $leb_set = 0;
                 }
-
-                if($val->checkin < $wh_start && $val->checkout > $wh_end){
-                    $jam = $wh_diff;
-                }
-                else if($val->checkin > $wh_start && $val->checkout > $wh_end){
-                    $jam = (strtotime($wh_end) - strtotime($val->checkin))/3600;
-                }
-                else if($val->checkin < $wh_start && $val->checkout < $wh_end){
-                    $jam = (strtotime($val->checkout) - strtotime($wh_start))/3600;
-                }
                 else{
-                    $jam = (strtotime($val->checkout) - strtotime($val->checkin))/3600;
+                    if($val->checkin < $wh_start){
+                        $kur_seb = 0;
+                        $leb_seb = (strtotime($wh_start) - strtotime($val->checkin))/3600;
+                    }
+                    else{
+                        $kur_seb = (strtotime($val->checkin) - strtotime($wh_start))/3600;
+                        $leb_seb = 0;
+                    }
+
+                    if($val->checkout > $wh_end){
+                        $kur_set = 0;
+                        $leb_set = (strtotime($val->checkout) - strtotime($wh_end))/3600;
+                    }
+                    else{
+                        $kur_set = (strtotime($wh_end) - strtotime($val->checkout))/3600;
+                        $leb_set = 0;
+                    }
+
+                    if($val->checkin < $wh_start && $val->checkout > $wh_end){
+                        $jam = $wh_diff;
+                    }
+                    else if($val->checkin > $wh_start && $val->checkout > $wh_end){
+                        $jam = (strtotime($wh_end) - strtotime($val->checkin))/3600;
+                    }
+                    else if($val->checkin < $wh_start && $val->checkout < $wh_end){
+                        $jam = (strtotime($val->checkout) - strtotime($wh_start))/3600;
+                    }
+                    else{
+                        $jam = (strtotime($val->checkout) - strtotime($val->checkin))/3600;
+                    }
+                    // if($val->checkin > $wh_start && $val->checkout > $wh_end){
+                    //     $jam     = (strtotime($val->checkout) - strtotime($val->checkin))/3600;
+                    //     $kur_seb = 0;
+                    //     $leb_seb = (strtotime($wh_start) - strtotime($val->checkin))/3600;
+                    //     $kur_set = 0;
+                    //     $leb_set = (strtotime($val->checkout) - strtotime($wh_end))/3600;
+                    // }
+                    $jam     = number_format($jam, 2, ",", ".");
+                    $kur_seb = number_format($kur_seb, 2, ",", ".");
+                    $leb_seb = number_format($leb_seb, 2, ",", ".");
+                    $kur_set = number_format($kur_set, 2, ",", ".");
+                    $leb_set = number_format($leb_set, 2, ",", ".");
                 }
-                // if($val->checkin > $wh_start && $val->checkout > $wh_end){
-                //     $jam     = (strtotime($val->checkout) - strtotime($val->checkin))/3600;
-                //     $kur_seb = 0;
-                //     $leb_seb = (strtotime($wh_start) - strtotime($val->checkin))/3600;
-                //     $kur_set = 0;
-                //     $leb_set = (strtotime($val->checkout) - strtotime($wh_end))/3600;
-                // }
-                $jam     = number_format($jam, 2, ",", ".");
-                $kur_seb = number_format($kur_seb, 2, ",", ".");
-                $leb_seb = number_format($leb_seb, 2, ",", ".");
-                $kur_set = number_format($kur_set, 2, ",", ".");
-                $leb_set = number_format($leb_set, 2, ",", ".");
                 //echo $val->checkin." ".$val->checkout." ".$jam." ".$kur_seb." ".$leb_seb." ".$kur_set." ".$leb_set."\n";
                 $sheet->setCellValue("A".$cell, $val->employee->nik);
                 $sheet->setCellValue("B".$cell, $val->employee->name);
