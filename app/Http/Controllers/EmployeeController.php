@@ -24,7 +24,7 @@ class EmployeeController extends Controller
         }
         $employee = $query->orderBy("created_at", "desc")->get();
         foreach ($employee as $val) {
-            $val->department = $val->department;
+            $val->user = $val->user;
         }
         $res = [
             "status" => "success",
@@ -58,6 +58,7 @@ class EmployeeController extends Controller
                 "nik" => "required|unique:App\Models\Employee,nik",
                 "department" => "required",
                 "password" => "required",
+                "device_id" => "required",
                 "name" => "required",
                 "shift" => "required|integer|min:1|max:3"
             ];
@@ -72,6 +73,7 @@ class EmployeeController extends Controller
                     "username" => $request->nik,
                     "name" => $request->name,
                     "password" => \Hash::make($request->password),
+                    "device_id" => $request->device_id,
                     "role" => "User",
                     "api_token" => md5($request->nik)
                 ]);
@@ -102,6 +104,7 @@ class EmployeeController extends Controller
             $valid_arr = [
                 "nik" => "required|unique:App\Models\Employee,nik,{$id},id",
                 "department" => "required",
+                "device_id" => "required",
                 "name" => "required",
                 "shift" => "required|integer|min:1|max:3"
             ];
@@ -119,7 +122,8 @@ class EmployeeController extends Controller
             else{
                 $data_user = [
                     "username" => $request->nik,
-                    "name" => $request->name
+                    "name" => $request->name,
+                    "device_id" => $request->device_id
                 ];
                 if($request->password != '')
                     $data_user["password"] = \Hash::make($request->password);
@@ -195,6 +199,7 @@ class EmployeeController extends Controller
                     "nik" => $row[1],
                     "password" => $row[5],
                     "name" => $row[2],
+                    "device_id" => $row[6],
                     "shift" => $row[4],
                 ];
                 $valid_arr = [
@@ -202,6 +207,7 @@ class EmployeeController extends Controller
                     "department" => "required",
                     "password" => "required",
                     "name" => "required",
+                    "device_id" => "required",
                     "shift" => "required|integer|min:1|max:3"
                 ];
                 $valid = Validator::make($request, $valid_arr);
@@ -215,6 +221,7 @@ class EmployeeController extends Controller
                         "username" => $request['nik'],
                         "name" => $request['name'],
                         "password" => \Hash::make($request['password']),
+                        "device_id" => $request['device_id'],
                         "role" => "User",
                         "api_token" => md5($request['nik'])
                     ]);

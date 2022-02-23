@@ -10,7 +10,7 @@ class Employee extends Model
     protected $fillable = ['user_id', 'nik', 'department', 'name', 'shift'];
     
     public function user(){
-        return $this->hasOne(User::class);
+        return $this->belongsTo(User::class);
     }
     public function attendance(){
         return $this->hasMany(Attendance::class);

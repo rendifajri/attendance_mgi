@@ -42,6 +42,7 @@ class UserController extends Controller
                 "username" => "required|alpha_dash|unique:App\Models\User,username",
                 "name" => "required",
                 "password" => "required",
+                "device_id" => "required",
                 "role" => "required|in:Admin,User"
             ];
             $valid = Validator::make($request->all(), $valid_arr);
@@ -52,6 +53,7 @@ class UserController extends Controller
                 "username" => $request->username,
                 "name" => $request->name,
                 "password" => \Hash::make($request->password),
+                "device_id" => $request->device_id,
                 "role" => $request->role,
                 "api_token" => md5($request->username)
             ]);
@@ -86,6 +88,7 @@ class UserController extends Controller
                 "username" => $request->username,
                 "name" => $request->name,
                 "password" => \Hash::make($request->password),
+                "device_id" => $request->device_id,
                 "role" => $request->role
             ]);
             $res = [
@@ -129,6 +132,8 @@ class UserController extends Controller
         $user = User::where($where)->first();
         if($user == null)
             throw new \ModelNotFoundException("Username not found.");
+        if($user->device_id != $request->device_id || $request->device_id == null)
+            throw new \ModelNotFoundException("Unauthorized device.");
         else if(!\Hash::check($request->password, $user->password))
             throw new \AccessDeniedHttpException("Password not match.");
         else{

@@ -22,18 +22,44 @@ To do(mobile)
 - DONE User Edit
 -      Attendance check validasi after/before work hour
 
-1. Jika waktu diantara start dan end, maka jam kerja
-2. Jika waktu lebih dari start dikurangi lama jam kerja, maka sebelum jam kerja. Dan sudah bisa checkin untuk lembur
-3. Jika selain itu atau waktu lebih dari end hingga kurang dari poin 2, maka setelah jam kerja. Dan jika belum checkin, maka checkout saja. Dan jika sudah checkout, keluar pesan "Anda sudah checkout".
-
 SELECT REFERENCED_TABLE_NAME, TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
 WHERE
   REFERENCED_TABLE_SCHEMA = 'attendance_mgi' AND
   (REFERENCED_TABLE_NAME = 'department' OR TABLE_NAME = 'department');
 
 C:\Users\qoin\AppData\Local\Android\Sdk\emulator\emulator.exe -avd Pixel_5_API_29
+https://rendifajri.com/attendance_mgi/public/app.apk
 
-UPDATE config SET office_lat=-6.20715500 WHERE id=1;
+
+use rendifa1_attendance_mgi;
+ALTER TABLE user ADD COLUMN device_id VARCHAR(191) NOT NULL COLLATE 'utf8mb4_unicode_ci' AFTER password;
+-- Haji Naman Fix = -6.24107700, 106.94266000
+UPDATE config SET office_lat=-6.24107700, office_lon=106.94266000, max_distance=500 WHERE id=1;
+
+-- Kalimalang Fix = -6.25107700, 106.94266000
+UPDATE config SET office_lat=-6.25107700, office_lon=106.94266000, max_distance=500 WHERE id=1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. Jika waktu diantara start dan end, maka jam kerja
+2. Jika waktu lebih dari start dikurangi lama jam kerja, maka sebelum jam kerja. Dan sudah bisa checkin untuk lembur
+3. Jika selain itu atau waktu lebih dari end hingga kurang dari poin 2, maka setelah jam kerja. Dan jika belum checkin, maka checkout saja. Dan jika sudah checkout, keluar pesan "Anda sudah checkout".
+
 
 DELETE FROM attendance;
 ALTER TABLE attendance AUTO_INCREMENT=1;
@@ -74,7 +100,11 @@ INSERT INTO attendance VALUES
 (null, 3, '2022-02-16', 3, '2022-02-16 20:30:50', '2022-02-17 08:14:09', -6.24130800, 106.94277800, NULL, NULL),
 (null, 3, '2022-02-17', 3, '2022-02-17 23:30:49', '2022-02-18 08:14:10', -6.24130800, 106.94277800, NULL, NULL),
 (null, 3, '2022-02-18', 3, '2022-02-18 23:29:48', '2022-02-19 08:15:24', -6.24130800, 106.94277800, NULL, NULL),
-(null, 3, '2022-02-19', 3, '2022-02-19 17:31:44', '2022-02-20 00:16:04', -6.24130800, 106.94277800, NULL, NULL);
+(null, 3, '2022-02-19', 3, '2022-02-19 17:31:44', '2022-02-20 00:16:04', -6.24130800, 106.94277800, NULL, NULL),
+
+(null, 1, '2022-02-21', 1, '2022-02-21 07:19:14', '2022-02-21 16:05:42', -6.24130800, 106.94277800, NULL, NULL),
+(null, 2, '2022-02-21', 2, '2022-02-21 15:55:13', '2022-02-22 00:22:12', -6.24130800, 106.94277800, NULL, NULL),
+(null, 3, '2022-02-21', 3, '2022-02-21 23:39:49', '2022-02-22 08:11:01', -6.24130800, 106.94277800, NULL, NULL);
 
 
 

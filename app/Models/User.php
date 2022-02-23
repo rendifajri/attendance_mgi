@@ -10,7 +10,7 @@ class User extends Authenticatable
 {
     //use HasFactory;
     protected $table = "user";
-    protected $fillable = ['username', 'name', 'password', 'role', 'api_token'];
+    protected $fillable = ['username', 'name', 'password', 'device_id', 'role', 'api_token'];
 
     public function employee(){
         return $this->hasOne(Employee::class);
