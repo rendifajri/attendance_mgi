@@ -33,6 +33,7 @@ https://rendifajri.com/attendance_mgi/public/app.apk
 
 use rendifa1_attendance_mgi;
 ALTER TABLE user ADD COLUMN device_id VARCHAR(191) NOT NULL COLLATE 'utf8mb4_unicode_ci' AFTER password;
+UPDATE user SET device_id='2212314861ae8bbc' WHERE id IN(1, 2);
 -- Haji Naman Fix = -6.24107700, 106.94266000
 UPDATE config SET office_lat=-6.24107700, office_lon=106.94266000, max_distance=500 WHERE id=1;
 
